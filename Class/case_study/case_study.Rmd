@@ -1,0 +1,106 @@
+---
+title: "case study"
+author: "Stephen Yuan"
+date: "10/14/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(p8105.datasets)
+library(leaflet)
+```
+
+## Load a dataset
+
+```{r}
+data("nyc_airbnb")
+```
+
+* Is price correlated with review score?
+* which neighboorhod is most popular? Most expensive?
+* Is availability related to proce?
+* which neighborhood has the hightest view?
+* Is room type related to neightborhood?
+* Is length of stay related to neighborhood group?
+* 
+
+```{r}
+nyc_airbnb = 
+  nyc_airbnb %>% 
+  mutate(stars = review_scores_location / 2) %>% 
+  rename(borough = neighbourhood_group)
+```
+
+Lets try to count things:
+
+```{r}
+nyc_airbnb %>% 
+  count(borough, room_type) %>% 
+  pivot_wider(
+    names_from = room_type,
+    values_from = n
+  )
+```
+
+1. Is price correlated with review score?
+
+```{r}
+nyc_airbnb %>% 
+  mutate(price = price / 1000) %>%
+  mutate(price = as.integer(price)) %>% 
+  mutate(stars = as.factor(stars)) %>% 
+  mutate_all(~replace(., is.na(.), 0)) %>% 
+  cor(price, stars)
+```
+
+price and room type .. 
+
+```{r}
+nyc_airbnb %>% 
+  ggplot(aes(x = stars, y = price)) + geom_point() + facet_grid(. ~ room_type)
+```
+
+price and neighborhood .. 
+
+```{r}
+nyc_airbnb %>% 
+  group_by(neighbourhood) %>% 
+  summarise(mean_price = mean(price, na.rm = TRUE)) %>% 
+  arrange(mean_price)
+
+nyc_airbnb %>% 
+  filter(
+    borough == "Manhattan",
+    price <= 1000) %>% 
+  mutate(neighbourhood = 
+           fct_reorder(neighborhood, price)) %>% 
+  ggplot(aes(x = neighbourhood, y = price)) + geom_boxplot() + coord_flip()
+```
+
+Price vs Location
+
+```{r}
+nyc_airbnb %>% 
+  filter(price < 500) %>% 
+  sample_n(5000) %>% 
+  ggplot(aes(x = lat, y = long, color = price)) + geom_point(alpha = .5)
+```
+
+
+## retry leaflet for mapping
+
+```{r, eval=FALSE}
+pal = colorNameric("viridis",NULL)
+
+nyc_airbnb %>% 
+  filter(borough == "Manhattan", price < 500) %>% 
+  sample_n(200) %>% 
+  leaflet() %>% 
+  addTiles() %>% 
+  addMarkers(~lat, ~long)
+```
+
+
+
+

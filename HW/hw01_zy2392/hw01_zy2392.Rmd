@@ -1,0 +1,84 @@
+---
+title: "hw01_zy2392"
+author: "Stephen Yuan"
+date: "9/27/2021"
+output: html_document
+---
+
+```{r}
+library(tidyverse) # Call library
+```
+
+# Problem1: 
+
+This problem is intended to emphasize variable types and introduce coercion.
+
+## a) Create DataFrame
+```{r}
+prob1_df = tibble(
+    rd_sample = rnorm(10, mean = 0, sd = 1),
+    vec_logic = ifelse(rd_sample > 0, TRUE, FALSE),
+    vec_char = c("a","b","c","d","e","f","g","h","i","j"),
+    vec_factor = factor(c("small","medium","large","small","small","medium","large","small","medium","large"))
+)
+```
+
+## b) Find mean of each variable
+
+### mean of each variable
+```{r}
+sample_mean = mean(pull(prob1_df, rd_sample))
+logic_mean = mean(pull(prob1_df, vec_logic))
+char_mean = mean(pull(prob1_df, vec_char))
+factor_mean = mean(pull(prob1_df, vec_factor))
+sample_mean
+logic_mean
+```
+mean function only works for numeric and logical variable type, and it does not work for charcter and factor variable type.
+
+## c) Convert data type
+```{r}
+attach(prob1_df)
+sample_num = as.numeric(rd_sample)
+logic_num = as.numeric(vec_logic)
+char_num = as.numeric(vec_char)
+factor_num = as.numeric(vec_factor)
+detach(prob1_df)
+```
+logic type can be transformed into 0 if it is false and 1 if it is True; factor can be transformed into levels then take means of levels instead; character type cannot be transformed into numeric type and NAs will be introduced so mean cannot be calculated.
+
+# Problem 2: 
+
+This problem focuses the use of inline R code, plotting, and the behavior of ggplot for variables of different types.
+
+## a) Dscription of dataset
+```{r}
+data("penguins", package = "palmerpenguins")
+penguins # we can obtain a basic understanding of penguins dataset: there are 8 varibales and          # 344 penguins record (rows of data) in total.
+```
+
+So there are totally `r ncol(penguins)` columns and `r nrow(penguins)` rows.
+
+Specifically, variables include `r names(penguins)`.
+```{r}
+factor_features = c('island', 'species', 'sex')
+apply(penguins[,factor_features], 2, unique)
+```
+There are 3 factor variables, with 3 levels for each variable.
+
+```{r}
+numercal_features = c('bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g', 'year')
+apply(penguins[, numercal_features], 2, median, na.rm = TRUE)
+```
+There 5 numeric variables, and their medians are given as well.
+
+Finally the mean of flipper length is `r round(mean(pull(penguins,flipper_length_mm), na.rm = TRUE),2)`.
+
+## b) Scatterplot
+```{r}
+ggplot(penguins, aes(x = bill_length_mm, y = flipper_length_mm, col = species)) + geom_point()
+```
+
+```{r}
+ggsave('bill_vs_flipper.pdf', height=8, width=8)
+```

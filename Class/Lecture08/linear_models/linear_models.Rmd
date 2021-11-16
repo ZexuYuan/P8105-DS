@@ -1,0 +1,127 @@
+---
+title: "linear_models"
+author: "Stephen Yuan"
+date: "11/16/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(p8105.datasets)
+
+set.seed(1)
+```
+
+## Model fitting
+
+```{r}
+data("nyc_airbnb")
+
+nyc_airbnb = 
+  nyc_airbnb %>% 
+  mutate(stars = review_scores_location / 2) %>% 
+  rename(
+    borough = neighbourhood_group,
+    neighborhood = neighbourhood) %>% 
+  filter(borough != "Staten Island") %>% 
+  select(price, stars, borough, neighborhood, room_type)
+```
+
+lets fit a linear model..
+
+```{r}
+fit = lm(price ~ stars + borough, data = nyc_airbnb)
+```
+
+lets look at this 
+
+```{r paged.print=TRUE}
+summary(fit)
+summary(fit)$coef
+
+fit %>% 
+  broom::tidy() %>% 
+  mutate(term = str_replace(term, "borough", "Borough: ")) %>% 
+  select(term, estimate, p.value)
+```
+
+## Diagnositics
+
+```{r}
+modelr::add_residuals(nyc_airbnb, fit) %>% 
+  ggplot(aes(x = stars, y = resid)) + geom_point()
+```
+
+Lets try a different model .. 
+
+```{r}
+fit = lm(price ~ stars * borough + room_type * borough, data = nyc_airbnb)
+
+broom::tidy(fit)
+```
+
+Lets nesting .. 
+
+```{r}
+nyc_airbnb %>% 
+  relocate(borough) %>% 
+  nest(data = price:room_type) %>% 
+  mutate(
+    lm_fits = map(.x = data, ~lm(price ~ stars + room_type, data = .x)),
+    lm_results = map(lm_fits, broom::tidy)
+  ) %>% 
+  select(borough, lm_results) %>% 
+  unnest(lm_results)
+```
+
+Look at neighborhoods in Manhattan ..
+
+```{r}
+manhattan_lm_results_df = 
+  nyc_airbnb %>% 
+  filter(borough == "Manhattan") %>% 
+  select(~borough) %>% 
+  relocate(neighbourhood) %>% 
+  nest(data = price:roome_type) %>% 
+  mutate(
+    lm_fits = map(.x = data, ~lm(price ~ stars + room_type, data = .x)),
+    lm_results = map(lm_fits, broom::tidy)
+  ) %>% 
+  select(borough, lm_results) %>% 
+  unnest(lm_results)
+```
+
+## Logistic regression
+
+```{r}
+nyc_airbnb =
+  nyc_airbnb %>% 
+  mutate(
+    expensive_apt = as.numeric(price > 500)
+  )
+
+logistic_fit = 
+  glm(
+  expensive_apt ~ stars + borough, 
+  data = nyc_airbnb,
+  family = binomial())
+
+logistic_fit %>% 
+  broom::tidy() %>% 
+  mutate(
+    term = str_replace(term, "borough", "Borough: "),
+    estimate = exp(estimate)
+  ) %>% 
+  select(term, OR = estimate, p.value)
+
+nyc_airbnb %>% 
+  modelr::add_predictions(logistic_fit) %>% 
+  view
+```
+
+
+
+
+
+
+

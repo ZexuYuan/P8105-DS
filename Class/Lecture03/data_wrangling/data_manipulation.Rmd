@@ -1,0 +1,128 @@
+---
+title: "data manipulation"
+output: github_document
+---
+
+```{r set up}
+library(tidyverse) #tidyverse contains a variaty of packages including dplyr
+```
+
+## load in the FAS litters data
+
+```{r}
+litters_df = read_csv("./dimport_ex/FAS_litters.csv")
+litters_df = janitor::clean_names(litters_df)
+```
+
+```{r}
+pups_df = read_csv("./dimport_ex/FAS_pups.csv")
+pups_df = janitor::clean_names(pups_df)
+```
+
+## `select`
+
+choose some colums and not others.
+
+```{r}
+select(litters_df,group,gd0_weight)
+```
+
+```{r}
+select(litters_df,group, gd0_weight:gd_of_birth)
+```
+
+```{r}
+select(litters_df, -litters_name) # get rid of names columns
+```
+
+Renaming columns ...
+
+```{r}
+select(litters_df, pups_born_alive_rename = pups_born_alive)
+```
+
+Select helpers
+
+```{r}
+select(litters_df, starts_with("gd")) # other funcitons -> ends_with; contains
+```
+
+```{r}
+select(litters_df, litter_number, everything())
+```
+
+```{r}
+relocate(litters_df, litter_number)
+```
+
+```{r}
+select(pups_df, litter_number, contains(litter_number)) #???
+```
+
+## `filter`
+
+```{r}
+filter(litters_df, gd0_weight == 20)
+filter(litters_df, gd0_weight == "Con7")
+filter(litters_df, gd0_weight < 23)
+filter(litters_df, gd0_weight != 4)
+filter(litters_df, !(group == "Con7"))
+filter(litters_df, !(group %in% c("Con7","Con8")))
+filter(litters_df, group == "Con7" || gd_of_birth == 20)
+```
+
+```{r}
+litters_df = drop_na(litters_df, gd_of_birth)
+```
+
+## `mutate`
+
+```{r}
+mutate(litters_df, 
+       wt_gain = gd18_weight - gd0_weight,
+       group = str_to_upper(group)
+       )
+```
+
+## rearange the data
+
+```{r}
+arrange(litters_df,gd_of_birth, pups_born_alive)
+```
+
+## pipes `%>%`
+
+```{r}
+litters_data_raw = read_csv("./dimport_ex/FAS_litters.csv")
+litters_clean_name = janitor::clean_names(litters_data_raw)
+litters_select = select(litters_clean_name, group, pups_survive)
+litters_filtered = filter(litters_select, group == "Con7")
+
+litters_df = 
+  read_csv("./dimport_ex/FAS_litters.csv") %>%
+  janitor::clean_names() %>%
+  select(group, pups_survive) %>%
+  filter(group == "Con7")
+```
+
+```{r}
+litters_df_test = (
+  read_csv("./dimport_ex/FAS_litters.csv") %>%
+  janitor::clean_names() %>%
+  select(group, gd0_weight, gd18_weight, pups_survive) %>%
+  mutate(
+    weight_change = gd18_weight - gd0_weight,
+    group = str_to_lower(group)
+  ) %>%
+  drop_na(weight_change)
+)
+litters_df_test
+```
+
+
+
+
+
+
+
+

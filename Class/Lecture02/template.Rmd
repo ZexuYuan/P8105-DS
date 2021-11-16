@@ -1,0 +1,43 @@
+---
+title: "Simple document"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r}
+library(tidyverse)
+```
+
+I'm an R Markdown document! 
+
+# Section 1
+
+Here's a **code chunk** that samples from 
+a _normal distribution_:
+
+```{r}
+samp = rnorm(100)
+length(samp)
+```
+
+# Section 2
+
+I can take the mean of the sample, too!
+The mean is `r mean(samp)`.
+
+# Section 3
+
+New code chunk.
+
+```{r, message=FALSE}
+library(tidyverse)
+
+set.seed(10)
+   
+plot_df = tibble(
+     x = rnorm(1000, sd = 0.5),
+     y = 1 + 2 * x ^ 2 + rnorm(1000)
+   )
+ggplot(plot_df, aes(x = x)) + geom_histogram()
+```

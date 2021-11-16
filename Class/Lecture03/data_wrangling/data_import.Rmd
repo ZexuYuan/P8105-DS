@@ -1,0 +1,70 @@
+---
+title: "data import"
+output: github_document
+---
+
+```{r set up}
+library(tidyverse)
+library(readxl)
+library(haven)
+```
+
+## Read in some data
+
+Read in the litters dataset.
+
+```{r}
+litters_df = read_csv("/Users/zexuyuan/Desktop/P8105_DS/Class/Lecture03/data_wrangling/dimport_ex/FAS_litters.csv")
+litters_df = janitor::clean_names(litters_df) ##双引号前面是库名
+```
+
+## Take a look at the data
+
+```{r}
+litters_df
+```
+
+```{r}
+tail(litters_df)
+```
+
+```{r}
+skimr::skim(litters_df)
+```
+
+## Options to read_csv
+
+check out `?read_csv()` for more information
+
+```{r}
+litters_df = read_csv("/Users/zexuyuan/Desktop/P8105_DS/Class/Lecture03/data_wrangling/dimport_ex/FAS_litters.csv", skip = 10, col_names = FALSE)
+litters_df = read_csv("./dimport_ex/FAS_litters.csv", na = c("","NA",".",999))
+```
+
+## Other file formats
+
+Read in an excel file.
+
+```{r}
+mlb_df = read_excel("./dimport_ex/mlb11.xlsx")
+```
+
+Read in a SAS file.
+
+```{r}
+pulse_df = read_sas("./dimport_ex/public_pulse_data.sas7bdat")
+```
+
+## Exporting data
+
+Export the mlb subtable
+
+```{r}
+write_csv(mlb_df,"./dimport_ex/mlb_subtable.csv")
+```
+
+
+
+
+
+

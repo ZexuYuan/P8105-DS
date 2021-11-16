@@ -1,0 +1,239 @@
+---
+title: "Data Visualization 1"
+author: "Stephen Yuan"
+date: "10/4/2021"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(ggridges)
+
+knitr::opts_chunk$set(
+  fig.width = 6,
+  fig.asp = .6,
+  out.height = "90%"
+)
+```
+
+## Load the weather 
+
+```{r}
+weather_df = 
+  rnoaa::meteo_pull_monitors(
+    c("USW00094728", "USC00519397", "USS0023B17S"),
+    var = c("PRCP", "TMIN", "TMAX"), 
+    date_min = "2017-01-01",
+    date_max = "2017-12-31") %>%
+  mutate(
+    name = recode(
+      id, 
+      USW00094728 = "CentralPark_NY", 
+      USC00519397 = "Waikiki_HA",
+      USS0023B17S = "Waterhole_WA"),
+    tmin = tmin / 10, # 最低温
+    tmax = tmax / 10) %>% # 最高温
+  select(name, id, everything())
+```
+
+## Scatterplots!!
+
+Create my first scatterplot ever.
+
+```{r, warning = FALSE}
+ggplot(weather_df, aes(x = tmin, y = tmax)) +
+  geom_point()
+```
+
+New approach, same plot.
+
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax)) +
+  geom_point()
+```
+
+Save and edit a plot object
+
+```{r}
+weather_plot = 
+  weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax))
+
+weather_plot + geom_point()
+```
+
+## Advanced scatterplot ...
+
+Start with the same ont and make it fancy!
+
+```{r add color by city name}
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax, color = name)) +
+  geom_point(alpha = .3) +
+  geom_smooth(aes(color = NULL), se = FALSE)
+```
+
+What about the `aes` placement...
+
+```{r only left the blue line}
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax)) +
+  geom_point(aes(color = name)) + 
+  geom_smooth()
+```
+
+Lets facet some things!!
+
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax)) +
+  geom_point(alpha = .2) +
+  geom_smooth(se = FALSE, size = 2) +
+  facet_grid(. ~ name) #按name分图
+```
+
+Lets combine some elements and try a new plot.
+
+```{r}
+weather_df %>% 
+  ggplot(aes(x = date, y = tmax, color = name)) +
+  geom_point(alpha = .5) +
+  geom_smooth(se = FALSE) +
+  facet_grid(. ~ name)
+```
+
+## Some small notes
+
+How many geoms have to exist?
+
+You can have whatever geoms you want.
+
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax, color = name)) +
+  geom_smooth(se = FALSE)
+```
+
+2D picture
+
+```{r install package hexbin}
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax, color = name)) +
+  geom_bin_2d() # 2D图
+```
+
+You can use a neat geom!
+
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax)) +
+  geom_density2d() +
+  geom_point(alpha = .3)
+```
+
+## Use data manipulation
+
+```{r}
+weather_df %>% 
+  filter(name == "CentralPark_NY") %>% 
+  mutate(tmax = tmax*(9 / 5) + 32,
+         tmin = tmin*(9 / 5) + 32)
+```
+
+
+## Univeriate plots
+
+Histograms are really great.
+
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmin)) +
+  geom_histogram()
+```
+
+Can we add color ...
+
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmin, fill = name)) +
+  geom_histogram() +
+  facet_grid(. ~ name)
+```
+
+Lets try a new geometry
+
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmin, fill = name)) +
+  geom_density(alpha = .1) # alpha = 颜色深度, 先配合分类
+```
+
+What about the plots ??
+
+```{r}
+weather_df %>% 
+  ggplot(aes(x = name, y = tmin, fill = name)) + 
+  geom_boxplot(alpah = .3)
+```
+
+Trendy plots .. violin box
+
+```{r}
+weather_df %>% 
+  ggplot(aes(x = name, y = tmin, fill = name)) +
+  geom_violin(alpha = .5) +
+  stat_summary()
+```
+
+Ridge plots -- the most popular plot of 2017
+
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmin, y = name)) +
+  geom_density_ridges(alpha = .8, scale = .8)
+```
+
+
+## Save and Embed
+
+Lets save a scatterplot.
+
+```{r}
+weather_plot = 
+  weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax, color = name)) +
+  geom_point(alpha = .5)
+
+ggsave("./weather_plot.pdf", weather_plot, width = 8, height = 5)
+```
+
+What about embedding..
+
+```{r, fig.width = 6, fig.height = 3}
+weather_plot
+```
+
+```{r, fig.width = 12, fig.height = 6}
+weather_plot
+```
+
+```{r, fig.width = 20, fig.height = 5}
+weather_plot
+# test
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
