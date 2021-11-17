@@ -1,0 +1,43 @@
+---
+title: "writing_functions"
+author: "Stephen Yuan"
+date: "11/16/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## do something simple: Z-score
+
+```{r}
+x_vec = rnorm(30, mean = 5, sd = 3)
+
+(x_vec - mean(x_vec)) / sd(x_vec)
+```
+
+I want a function to compute z-score
+
+```{r}
+z_scores = function(x) {
+  
+  z = (x - mean(x)) / sd(x)
+  
+  return(z)
+}
+
+z_scores(x_vec)
+```
+
+Try my function on some other things.
+
+```{r}
+z_scores(3)
+z_scores("wechat")
+z_scores(mtcars)
+z_scores(c(TRUE, TRUE, FALSE, TRUE))
+```
+
+
+
