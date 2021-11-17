@@ -202,5 +202,63 @@ dynamite_urls = str_c(dynamite_url_base, 1:5)
 dynamite_urls[2]
 ```
 
+Lets read a few pages of reviews
+
+```{r}
+dynamite_urls = str_c(dynamite_url_base, 1:50)
+
+all_reviews = 
+  bind_rows(
+    read_page_reviews(dynamite_urls[1]),
+    read_page_reviews(dynamite_urls[2]),
+    read_page_reviews(dynamite_urls[3]),
+    read_page_reviews(dynamite_urls[4]),
+    read_page_reviews(dynamite_urls[5])
+  )
+```
+
+
+## Mean scoping example 
+
+```{r}
+f = function(x) {
+  z = x + y
+  z
+}
+
+x = 1
+y = 2
+
+f(x = y) #先把y值赋给x, 所以x=2, 代入到方程里面x=2且y=2, 所以最后得到4
+```
+
+```{r}
+f = function(x1) {
+  z = x1 + x2
+  z
+}
+
+x = 1
+y = 2
+
+f(x1 = 2)
+```
+
+## Functions as arguments
+
+```{r}
+my_summary = function(x,summ_func) {
+  
+  summ_func(x)
+}
+
+x_vec = rnorm(100, 3, 7)
+
+
+my_summary(x_vec, mean) #mean(x_vec)
+my_summary(x_vec, median) #median(x_vec)
+my_summary(x_vec, IQR) #等同于IQR(x_vec)
+```
+
 
 
