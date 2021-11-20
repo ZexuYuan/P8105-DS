@@ -36,9 +36,9 @@ Create a new list.
 list_norm = 
   list(
     a = rnorm(20, mean = 3, sd = 1),
-    b = rnorm(20, mean = 0, sd = 5),
-    c = rnorm(20, mean = 10, sd = 0.2),
-    d = rnorm(20, mean = -3, sd = 1)
+    b = rnorm(30, mean = 0, sd = 5),
+    c = rnorm(40, mean = 10, sd = 0.2),
+    d = rnorm(50, mean = -3, sd = 1)
   )
 ```
 
@@ -105,6 +105,146 @@ what if you want a different function ..
 output = map(list_norm, median)
 output = map(list_norm, IQR)
 ```
+
+```{r}
+output = map_dbl(list_norm, median) # 类型改为double
+```
+
+```{r}
+output = map_dbl(list_norm, median, .id = "input")
+```
+
+```{r}
+output = map(list_norm, mean_and_sd)
+```
+
+```{r}
+output = map_df(list_norm, mean_and_sd, .id = "input")
+```
+
+
+## List columns!
+
+```{r}
+listcol_df = 
+  tibble(
+    name = c("a","b","c","d"),
+    samp = list_norm
+  )
+```
+
+```{r}
+listcol_df %>% 
+  pull(name)
+
+listcol_df %>% 
+  pull(samp)
+
+listcol_df %>% 
+  filter(name == "a")
+```
+
+Lets try some operations.
+
+```{r}
+mean_and_sd(listcol_df$samp[[1]])
+mean_and_sd(listcol_df$samp[[2]])
+```
+
+Can I just ... map ?
+
+```{r}
+map(listcol_df$samp, mean_and_sd)
+```
+
+So ... can I add a list column??
+
+```{r}
+listcol_df %>% 
+  mutate(summary = map_df(samp, mean_and_sd),
+         medians = map_dbl(samp, median))
+```
+
+
+## Weather data
+
+```{r}
+weather_df = 
+  rnoaa::meteo_pull_monitors(
+    c("USW00094728", "USC00519397", "USS0023B17S"),
+    var = c("PRCP", "TMIN", "TMAX"), 
+    date_min = "2017-01-01",
+    date_max = "2017-12-31") %>%
+  mutate(
+    name = recode(
+      id, 
+      USW00094728 = "CentralPark_NY", 
+      USC00519397 = "Waikiki_HA",
+      USS0023B17S = "Waterhole_WA"),
+    tmin = tmin / 10,
+    tmax = tmax / 10) %>%
+  select(name, id, everything())
+```
+
+Get our list columns ..
+
+```{r}
+weather_nest = 
+  weather_df %>% 
+  nest(data = date:tmin)
+```
+
+```{r}
+weather_nest %>% 
+  pull(name)
+
+weather_nest$data[[3]]
+```
+
+Suppose I want to regress `tmax` on `tmin` for each station.
+
+This works!
+
+```{r}
+lm(tmax ~ tmin, data = weather_nest$data[[1]])
+```
+
+Lets write a function.
+
+```{r}
+weather_lm = function(df) {
+  lm(tmax ~ tmin, data = df)
+}
+
+output = vector("list", 3)
+
+for (i in 1:3) {
+  
+  output[[i]] = weather_lm(weather_nest$data[[i]])
+    
+}
+```
+
+What about a map ... !?
+
+```{r}
+map(weather_nest$data, weather_lm)
+```
+
+What about a map in a list column !!
+
+```{r}
+weather_nest = 
+  weather_nest %>% 
+  mutate(models = map(data, weather_lm))
+
+weather_nest$models
+```
+
+
+
+
+
 
 
 
